@@ -8,7 +8,8 @@ import type {
   AuditEvent,
 } from "./types";
 import { statusLabel } from "./types";
-import { ErrorNotice, Header, useApp } from "./ui";
+import { ActionIcon, ErrorNotice, Header, Spinner, useApp } from "./ui";
+import { PointCard, PointsStats, type PointItem } from "./point-cards";
 import { AdminNav } from "./admin";
 import { Summary } from "./chat";
 import { MapView } from "./maps";
@@ -74,17 +75,6 @@ export function Login() {
     </>
   );
 }
-type PointItem = {
-  id: string;
-  name: string;
-  formatted_address: string;
-  city: string;
-  status: string;
-  point_status: string;
-  created_at: string;
-  application_id: string;
-  session_id: string;
-};
 export function MyPoints() {
   const [items, setItems] = useState<PointItem[]>([]);
   const [error, setError] = useState("");
@@ -99,52 +89,48 @@ export function MyPoints() {
   return (
     <>
       <Header title="Партнёрский кабинет" />
-      <main className="page">
+      <main className="page points-page">
         <div className="page-heading">
           <div>
-            <div className="eyebrow">ВАШИ ТОЧКИ</div>
-            <h1>Мои Point</h1>
-            <p className="muted">
-              Здравствуйте, {user?.first_name}. Здесь находятся ваши точки и
-              заявки.
-            </p>
+            <div className="eyebrow">ВАША СЕТЬ · POINT</div>
+            <h1>Мои Point.</h1>
+            <p className="muted">Все ваши точки и заявки — в одном месте.</p>
           </div>
           <a className="button primary" href="/points/new">
-            + Добавить Point
+            <ActionIcon kind="plus" />
+            Добавить Point
           </a>
         </div>
         {user?.role === "admin" && <AdminNav />}
         <ErrorNotice text={error} />
-        {loaded && !error && items.length === 0 && (
-          <div className="empty-state">
-            <div className="pin-symbol">P</div>
-            <h2>Теперь давайте подключим ваш первый Point</h2>
-            <p className="muted">
-              Подготовьте реквизиты организации и фотографии точки.
-            </p>
-            <a href="/points/new" className="button primary">
-              Создать Point
-            </a>
-          </div>
-        )}
-        <div className="point-grid">
-          {items.map((p) => (
-            <article className="card point-tile" key={p.id}>
-              <span className={`badge status-${p.status}`}>
-                {statusLabel[p.status]}
-              </span>
-              <h2>{p.name}</h2>
-              <p>{p.formatted_address}</p>
-              <small className="muted">
-                Создан {new Date(p.created_at).toLocaleDateString("ru")} ·{" "}
-                {statusLabel[p.point_status]}
-              </small>
-              <a className="button" href={`/applications/${p.application_id}`}>
-                Открыть →
+        {!loaded && <Spinner />}
+        {loaded && !error && (
+          <>
+            <PointsStats items={items} />
+            <div className="points-list-heading">
+              <h2>
+                Точки и заявки <span>{items.length}</span>
+              </h2>
+              <small className="muted">Сначала последние изменения</small>
+            </div>
+            <div className="point-grid">
+              {items.map((p) => (
+                <PointCard point={p} key={p.id} />
+              ))}
+              <a className="point-add-tile" href="/points/new">
+                <ActionIcon kind="plus" />
+                <strong>
+                  {items.length ? "Ещё один Point" : "Ваш первый Point"}
+                </strong>
+                <span>Подключить новую точку</span>
               </a>
-            </article>
-          ))}
-        </div>
+            </div>
+            <p className="points-save-note">
+              Черновики сохраняются автоматически. Отправленные заявки
+              проверяются в Point.
+            </p>
+          </>
+        )}
       </main>
     </>
   );

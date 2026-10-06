@@ -11,20 +11,48 @@ export function initials(first = "", last = "") {
     ((first.trim()[0] || "") + (last.trim()[0] || "")).toUpperCase() || "P"
   );
 }
+export function BrandLogo({ decorative = false }: { decorative?: boolean }) {
+  return (
+    <img
+      className="brand-logo"
+      src="/point-logo.png"
+      width="139"
+      height="57"
+      alt={decorative ? "" : "point"}
+    />
+  );
+}
+export function ActionIcon({ kind = "arrow" }: { kind?: "arrow" | "plus" }) {
+  return (
+    <svg
+      className="action-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {kind === "plus" ? (
+        <path d="M12 5v14M5 12h14" />
+      ) : (
+        <path d="M4 12h16m-6-6 6 6-6 6" />
+      )}
+    </svg>
+  );
+}
 export function Logo() {
   return (
-    <a className="logo" href="/points">
-      <span className="brand-mark">
-        P<span />
-      </span>
-      Point
+    <a className="logo" href="/points" aria-label="Point — мои точки">
+      <BrandLogo />
     </a>
   );
 }
 export function AssistantIcon() {
   return (
     <span className="assistant-icon" aria-hidden="true">
-      P<span />
+      <BrandLogo decorative />
     </span>
   );
 }

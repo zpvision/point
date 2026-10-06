@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { Address, FileRef, Question, Schedule, Session } from "./types";
 import { api, errorMessages, errorText } from "./api";
-import { AssistantIcon, ErrorNotice, Header, Spinner, useApp } from "./ui";
+import {
+  AssistantIcon,
+  ActionIcon,
+  BrandLogo,
+  ErrorNotice,
+  Header,
+  Spinner,
+  useApp,
+} from "./ui";
 import { answerLabel, QuestionRenderer, scheduleLines } from "./questions";
+import { StepIcon } from "./step-icon";
 
 export function RegistrationProgress({ session }: { session: Session }) {
   return (
@@ -40,7 +49,9 @@ export function PointLivePreview({ session }: { session: Session }) {
         />
       ) : (
         <div className="cover-placeholder">
-          <span className="pin-symbol">P</span>
+          <span className="pin-symbol">
+            <BrandLogo decorative />
+          </span>
           <span>Здесь будет фото вашей точки</span>
         </div>
       )}
@@ -235,7 +246,9 @@ function QuestionCard({
             <div className="actions">
               <button className="primary" type="submit">
                 {saving ? <Spinner /> : "Продолжить"}{" "}
-                <span aria-hidden="true">→</span>
+                <span className="action-icon" aria-hidden="true">
+                  →
+                </span>
               </button>
               {!q.required && (
                 <button type="button" onClick={() => onSubmit(null)}>
@@ -499,16 +512,27 @@ export function RegistrationChat({ code }: { code: string }) {
       </Header>
       <div className={`registration-layout ${isPoint ? "" : "account-layout"}`}>
         <aside className="steps-sidebar">
+          <nav className="steps-breadcrumbs" aria-label="Навигационная цепочка">
+            <a href={isPoint ? "/points" : "/login"}>
+              {isPoint ? "Мои Point" : "Вход"}
+            </a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">
+              {isPoint ? "Новый Point" : "Регистрация"}
+            </span>
+          </nav>
           <div className="eyebrow">ВАШ ПУТЬ В POINT</div>
-          {isPoint && (
-            <div className="step done">
-              <span>1</span>
-              <div>
-                <strong>Регистрация</strong>
-                <small>Основные данные</small>
-              </div>
+          <div className="steps-progress">
+            <div>
+              <span>{isPoint ? "Подключение точки" : "Создание аккаунта"}</span>
+              <strong>{session?.percent || 0}%</strong>
             </div>
-          )}
+            <progress
+              value={session?.percent || 0}
+              max={100}
+              aria-label="Прогресс регистрации"
+            />
+          </div>
           {session?.graph.sections
             .slice()
             .sort((a, b) => a.order - b.order)
@@ -529,6 +553,9 @@ export function RegistrationChat({ code }: { code: string }) {
                   <button
                     type="button"
                     className={`step step-button ${current?.section === s.code ? "active" : ""} ${done ? "done" : ""}`}
+                    aria-current={
+                      current?.section === s.code ? "step" : undefined
+                    }
                     disabled={available.length === 0 || saving || resume}
                     aria-expanded={
                       available.length > 1
@@ -542,11 +569,25 @@ export function RegistrationChat({ code }: { code: string }) {
                     }
                     onClick={() => openQuestion(available[0])}
                   >
-                    <span>{i + (isPoint ? 2 : 1)}</span>
-                    <div>
+                    <span className="step-icon">
+                      <StepIcon code={s.code} />
+                    </span>
+                    <div className="step-copy">
                       <strong>{s.name}</strong>
-                      <small>{s.description}</small>
+                      <small>
+                        {s.description ||
+                          (
+                            {
+                              schedule: "Дни и часы",
+                              photos: "Знакомство с точкой",
+                              contact: "На связи с Point",
+                            } as Record<string, string>
+                          )[s.code]}
+                      </small>
                     </div>
+                    <span className="step-number">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                   </button>
                   {expandedSection === s.code && available.length > 1 && (
                     <div
@@ -572,41 +613,56 @@ export function RegistrationChat({ code }: { code: string }) {
           <button
             type="button"
             className={`step step-button ${session && !current ? "active" : ""}`}
+            aria-current={session && !current ? "step" : undefined}
             disabled={!session || !!session.next || saving || resume}
             onClick={() => {
               setEditing(null);
               setExpandedSection(null);
             }}
           >
-            <span>
-              {(session?.graph.sections.length || 0) + (isPoint ? 2 : 1)}
+            <span className="step-icon">
+              <StepIcon code="review" />
             </span>
-            <div>
+            <div className="step-copy">
               <strong>Проверка</strong>
               <small>
                 {isPoint ? "Отправка на модерацию" : "Создание аккаунта"}
               </small>
             </div>
+            <span className="step-number">
+              {String((session?.graph.sections.length || 0) + 1).padStart(
+                2,
+                "0",
+              )}
+            </span>
           </button>
           <div className="sidebar-note">
-            Ответы сохраняются автоматически.
-            <br />
-            Вы можете вернуться позже.
+            <StepIcon code="save" />
+            <div>
+              Ответы сохраняются автоматически.
+              <br />
+              Вы можете вернуться позже.
+            </div>
           </div>
         </aside>
         <main className="chat-main">
           <div className="chat-intro">
-            <div className="eyebrow">
-              {isPoint ? "НОВЫЙ POINT" : "ДОБРО ПОЖАЛОВАТЬ"}
+            <div className="chat-brand" aria-hidden="true">
+              <AssistantIcon />
             </div>
-            <h1>
-              {isPoint ? "Давайте подключим вашу точку" : "Начнём знакомство"}
-            </h1>
-            <p className="muted">
-              {isPoint
-                ? "Расскажите о вашей организации и месте, куда будут приходить клиенты."
-                : "Несколько вопросов, чтобы создать ваш аккаунт."}
-            </p>
+            <div className="chat-intro-copy">
+              <h1>{isPoint ? "Подключение Point" : "Регистрация аккаунта"}</h1>
+              <p className="muted">Ваш помощник по регистрации</p>
+            </div>
+            {session && (
+              <span
+                className="chat-step-badge"
+                aria-label="Прогресс регистрации"
+              >
+                {Math.min(session.answered + 1, session.questions.length)} /{" "}
+                {session.questions.length}
+              </span>
+            )}
             {isPoint && (
               <button
                 className="mobile-preview"
@@ -635,6 +691,7 @@ export function RegistrationChat({ code }: { code: string }) {
               </p>
               <div className="actions">
                 <button className="primary" onClick={() => setResume(false)}>
+                  <ActionIcon />
                   Продолжить
                 </button>
                 <button
@@ -670,19 +727,34 @@ export function RegistrationChat({ code }: { code: string }) {
                         <div className="bubble">{q.title}</div>
                       </div>
                       <div className="user-answer">
+                        <span className="answer-author">Вы</span>
                         <div className="bubble">
                           <span>{answerLabel(q, session.answers[q.key])}</span>
-                          <button
-                            className="edit-answer"
-                            onClick={() => {
-                              setEditing(q);
-                              setAnswerError("");
-                            }}
-                            aria-label={`Изменить: ${q.title}`}
-                          >
-                            Изменить
-                          </button>
                         </div>
+                        <button
+                          className="edit-answer"
+                          onClick={() => {
+                            setEditing(q);
+                            setAnswerError("");
+                          }}
+                          aria-label={`Изменить: ${q.title}`}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="m16 3 5 5-13 13H3v-5L16 3Z" />
+                            <path d="m13 6 5 5" />
+                          </svg>
+                          Изменить
+                        </button>
                       </div>
                     </div>
                   ))}

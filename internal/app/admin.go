@@ -6,6 +6,8 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+	"sort"
+	"time"
 )
 
 func rowsJSON(rows *sql.Rows) ([]map[string]any, error) {
@@ -325,7 +327,12 @@ func (a *App) points(w http.ResponseWriter, r *http.Request) error {
 	if e != nil {
 		return e
 	}
-	rows, e := a.db.QueryContext(r.Context(), "SELECT p.id,p.name,p.formatted_address,p.city,p.status AS point_status,p.created_at,a.id AS application_id,a.status,a.session_id FROM points p JOIN point_applications a ON a.point_id=p.id WHERE p.owner_id=$1 ORDER BY p.created_at DESC", u.ID)
+	rows, e := a.db.QueryContext(r.Context(), `SELECT p.id,p.name,p.formatted_address,p.city,p.status AS point_status,p.created_at,
+ a.id AS application_id,a.status,a.session_id,a.updated_at,o.short_name AS organization_name,
+ COALESCE((SELECT f.id FROM attachments f WHERE f.point_id=p.id AND f.mime IN ('image/png','image/jpeg')
+ ORDER BY (f.category='facade') DESC,f.created_at,f.id LIMIT 1),'') AS cover_id
+ FROM points p JOIN point_applications a ON a.point_id=p.id JOIN organizations o ON o.id=p.organization_id
+ WHERE p.owner_id=$1 ORDER BY a.updated_at DESC`, u.ID)
 	if e != nil {
 		return e
 	}
@@ -333,6 +340,71 @@ func (a *App) points(w http.ResponseWriter, r *http.Request) error {
 	if e != nil {
 		return e
 	}
+	// Fetch all draft graphs, answers and uploaded covers in one batch. Never expose the graphs or raw answers here.
+	drafts, e := a.db.QueryContext(r.Context(), `SELECT s.id,s.started_at,s.updated_at,v.graph,
+ COALESCE((SELECT jsonb_object_agg(a.question_key,a.value_json) FROM questionnaire_answers a
+ WHERE a.session_id=s.id AND a.active),'{}'::jsonb),
+ COALESCE((SELECT jsonb_agg(jsonb_build_object('id',f.id,'question_key',f.question_key)
+ ORDER BY (f.category='facade') DESC,f.created_at,f.id) FROM attachments f
+ WHERE f.session_id=s.id AND f.mime IN ('image/png','image/jpeg')),'[]'::jsonb)
+ FROM questionnaire_sessions s JOIN questionnaire_versions v ON v.id=s.scenario_version_id
+ JOIN questionnaire_scenarios c ON c.id=v.scenario_id
+ WHERE s.user_id=$1 AND s.status='IN_PROGRESS' AND c.code='POINT_REGISTRATION'
+ AND NOT EXISTS(SELECT 1 FROM point_applications a WHERE a.session_id=s.id)`, u.ID)
+	if e != nil {
+		return e
+	}
+	defer drafts.Close()
+	for drafts.Next() {
+		var id string
+		var created, updated time.Time
+		var graph, answers, files []byte
+		if e = drafts.Scan(&id, &created, &updated, &graph, &answers, &files); e != nil {
+			return e
+		}
+		s := Session{Answers: map[string]any{}}
+		if e = json.Unmarshal(graph, &s.Graph); e != nil {
+			return e
+		}
+		if e = json.Unmarshal(answers, &s.Answers); e != nil {
+			return e
+		}
+		s.calculate()
+		address, _ := decodeValue[Address](s.Preview["point.address"])
+		org, _ := decodeValue[OrganizationData](s.Preview["organization.inn"])
+		var uploaded []struct {
+			ID          string `json:"id"`
+			QuestionKey string `json:"question_key"`
+		}
+		if e = json.Unmarshal(files, &uploaded); e != nil {
+			return e
+		}
+		photoQuestions := map[string]bool{}
+		for _, q := range s.Questions {
+			if q.Binding == "point.photos" {
+				photoQuestions[q.Key] = true
+			}
+		}
+		cover := ""
+		for _, f := range uploaded {
+			if photoQuestions[f.QuestionKey] {
+				cover = f.ID
+				break
+			}
+		}
+		name := "Ваша новая точка"
+		if address.Address != "" {
+			name = "Point · " + address.Address
+		}
+		out = append(out, map[string]any{"id": id, "name": name, "formatted_address": address.Address,
+			"city": address.Components.City, "status": "DRAFT", "point_status": "PENDING",
+			"created_at": created, "updated_at": updated, "application_id": "", "session_id": id,
+			"organization_name": org.ShortName, "cover_id": cover})
+	}
+	if e = drafts.Err(); e != nil {
+		return e
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i]["updated_at"].(time.Time).After(out[j]["updated_at"].(time.Time)) })
 	jsonResponse(w, out)
 	return nil
 }
