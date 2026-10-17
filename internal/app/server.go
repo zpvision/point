@@ -100,7 +100,7 @@ func (a *App) handle(fn endpoint) http.HandlerFunc {
 			}
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			w.WriteHeader(ae.Status)
-			_ = json.NewEncoder(w).Encode(ae)
+			_ = json.NewEncoder(w).Encode(map[string]any{"code": ae.Code, "message": ae.Message, "error": ae.Message, "question_key": ae.QuestionKey})
 		}
 	}
 }
@@ -207,6 +207,7 @@ func (a *App) bootstrap(ctx context.Context) error {
 func (a *App) routes() http.Handler {
 	m := http.NewServeMux()
 	route := func(pattern string, h endpoint) { m.HandleFunc(pattern, a.handle(h)) }
+	a.designRoutes(m)
 	route("GET /api/me", func(w http.ResponseWriter, r *http.Request) error {
 		u, _ := a.user(r)
 		jsonResponse(w, map[string]any{"user": u, "maps_key": os.Getenv("YANDEX_MAPS_API_KEY"), "development": a.env == "development"})

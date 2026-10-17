@@ -275,6 +275,9 @@ func (a *App) answer(w http.ResponseWriter, r *http.Request) error {
 	if e = a.owns(r, s); e != nil {
 		return e
 	}
+	if e = a.requireDesignSessionConsent(r, s); e != nil {
+		return e
+	}
 	if s.Status != "IN_PROGRESS" {
 		return fail(409, "SESSION_CLOSED", "Регистрация завершена или отменена")
 	}
@@ -379,6 +382,9 @@ func (a *App) cancelSession(w http.ResponseWriter, r *http.Request) error {
 	if e = a.owns(r, s); e != nil {
 		return e
 	}
+	if e = a.requireDesignSessionConsent(r, s); e != nil {
+		return e
+	}
 	if s.Status != "IN_PROGRESS" || s.EntityID != "" {
 		return fail(409, "SESSION_CLOSED", "Эту регистрацию нельзя отменить")
 	}
@@ -402,6 +408,9 @@ func (a *App) complete(w http.ResponseWriter, r *http.Request) error {
 		return e
 	}
 	if e = a.owns(r, s); e != nil {
+		return e
+	}
+	if e = a.designCompletionCheck(r, s); e != nil {
 		return e
 	}
 	if s.Status == "COMPLETED" {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	_ "golang.org/x/image/webp"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -35,6 +36,9 @@ func (a *App) sessionAttachments(w http.ResponseWriter, r *http.Request) error {
 		return e
 	}
 	if e = a.owns(r, s); e != nil {
+		return e
+	}
+	if e = a.requireDesignSessionConsent(r, s); e != nil {
 		return e
 	}
 	rows, e := a.db.QueryContext(r.Context(), "SELECT id,question_key,category,mime,original_name FROM attachments WHERE session_id=$1 ORDER BY created_at", s.ID)
@@ -134,7 +138,7 @@ func (a *App) upload(w http.ResponseWriter, r *http.Request) error {
 	}
 	contentType := http.DetectContentType(b)
 	ext := strings.ToLower(filepath.Ext(h.Filename))
-	allowed := map[string][]string{"image/jpeg": {".jpg", ".jpeg"}, "image/png": {".png"}}
+	allowed := map[string][]string{"image/jpeg": {".jpg", ".jpeg"}, "image/png": {".png"}, "image/webp": {".webp"}}
 	if question.Type == "FILE_UPLOAD" {
 		allowed["application/pdf"] = []string{".pdf"}
 	}
@@ -194,6 +198,11 @@ func (a *App) attachment(w http.ResponseWriter, r *http.Request) (string, string
 	if e = a.owns(r, s); e != nil {
 		u, _ := a.user(r)
 		if u == nil || u.Role != "admin" || r.Method != "GET" {
+			return "", "", "", "", e
+		}
+	}
+	if r.Method != "GET" {
+		if e = a.requireDesignSessionConsent(r, s); e != nil {
 			return "", "", "", "", e
 		}
 	}

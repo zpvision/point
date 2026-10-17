@@ -1,0 +1,124 @@
+/* Only new backend-required controls. Reference cabinet/market rules remain intact. */
+.auth-design {
+  display: grid;
+  place-items: center;
+  min-height: 75vh;
+}
+.auth-design > .profile-card {
+  width: min(100%, 480px);
+  padding: 32px;
+}
+.auth-design h1 {
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  margin: 16px 0;
+}
+.auth-design .primary {
+  margin-top: 14px;
+}
+.native-details {
+  margin: 0 0 28px;
+}
+.native-field {
+  border-top: 1px solid var(--line, #dedede);
+  padding-top: 18px;
+  margin-top: 20px;
+}
+.native-field h4 {
+  font-size: 15px;
+  margin: 0 0 14px;
+}
+.native-details label {
+  display: block;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.native-details input:not([type="checkbox"]),
+.native-details textarea,
+.native-details select {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d6d6d6;
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+  margin-top: 6px;
+  box-sizing: border-box;
+}
+.native-details button {
+  padding: 9px 13px;
+  border: 1px solid #d6d6d6;
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.native-details input[type="checkbox"] {
+  margin-right: 8px;
+}
+.native-details .form-grid,
+.native-details .coordinate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.native-details .error-notice,
+.native-details .warning {
+  color: #994311;
+  font-size: 13px;
+}
+.native-details .suggestions {
+  padding: 0;
+  list-style: none;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+}
+.native-details .suggestions button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+}
+.native-details .map-container,
+.native-details .map-canvas {
+  height: 280px;
+  max-width: 100%;
+}
+.native-details .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.native-details .choices button.selected {
+  background: #171717;
+  color: white;
+}
+.native-details .muted {
+  color: #777;
+  font-size: 13px;
+}
+.native-details .upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.native-details .upload-grid img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+}
+.native-details .map-fallback {
+  padding: 14px;
+  background: #f4f4f2;
+  border-radius: 7px;
+}
+@media (max-width: 580px) {
+  .native-details .form-grid,
+  .native-details .coordinate-grid {
+    grid-template-columns: 1fr;
+  }
+  .auth-design > .profile-card {
+    padding: 24px;
+  }
+}

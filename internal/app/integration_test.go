@@ -15,6 +15,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -363,12 +365,19 @@ func TestIntegrationSeedIdempotent(t *testing.T) {
 
 func TestIntegrationMigrationDownAndUp(t *testing.T) {
 	h := integration(t)
-	b, e := os.ReadFile("migrations/001_platform.down.sql")
+	files, e := filepath.Glob("migrations/*.down.sql")
 	if e != nil {
 		t.Fatal(e)
 	}
-	if _, e = h.a.db.Exec(string(b)); e != nil {
-		t.Fatal(e)
+	sort.Sort(sort.Reverse(sort.StringSlice(files)))
+	for _, file := range files {
+		b, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = h.a.db.Exec(string(b)); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if e = h.a.migrate(context.Background()); e != nil {
 		t.Fatal(e)
