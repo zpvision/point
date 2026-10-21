@@ -45,6 +45,20 @@ Copy-Item .env.example .env
 
 Frontend dev — `npm run dev`, порт **5175**, API и юридические документы проксируются на 8080. Для него backend запускается с `PUBLIC_ORIGIN=http://localhost:5175`. Обычная собранная версия использует `http://localhost:8080` и такой же `PUBLIC_ORIGIN`. Origin должен точно совпадать с адресом браузера. Ссылки на лендинг ведут на `https://s1point.ru`, в том числе при локальном запуске.
 
+## Генерируемые CSS и обновление сервера
+
+`npm run build` и `npm run dev` сначала запускают `scripts/build-design.mjs`. Он собирает `web/src/design/cabinet.css` и `web/src/design/market.css` в `web/public/cabinet.css` и `web/public/market.css`. Эти два результата сборки исключены из Git: они создаются автоматически и затем копируются Vite в `web/dist`. Редактировать нужно файлы в `web/src/design`.
+
+В предыдущих коммитах готовые CSS ошибочно отслеживались Git. Сборка на сервере могла изменить их содержимое, после чего следующий `git pull` останавливался с `Your local changes ... would be overwritten by merge`. Для первого обновления со старой версии, после проверки `git diff -- web/public/cabinet.css web/public/market.css`, можно восстановить только эти генерируемые файлы и получить исправление:
+
+```sh
+git restore -- web/public/cabinet.css web/public/market.css
+git pull --ff-only
+npm run build
+```
+
+Эти команды предназначены для старого checkout, где оба CSS ещё отслеживаются. `git restore` удаляет только несохранённые изменения двух указанных результатов сборки. После перехода на исправленную версию повторять восстановление не требуется. `.env`, загрузки и данные БД эти команды не затрагивают. Остальные шаги штатного деплоя (сборка Go, перезапуск сервиса) остаются прежними.
+
 ## Проверки
 
 ```powershell
