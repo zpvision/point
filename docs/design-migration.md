@@ -43,7 +43,7 @@ Copy-Item .env.example .env
 
 Не перезаписывать существующий `.env`. На этой машине создана отдельная БД `point_design` в контейнере `point-design-postgres`, порт `127.0.0.1:54329`; пароль хранится только в `.env`. Запуск контейнера: `docker start point-design-postgres`. Данные сохраняются в volume `point-design-pgdata`. Файлы — `var/uploads`.
 
-Frontend dev — `npm run dev`, порт **5175**, API и юридические документы проксируются на 8080. Для него backend запускается с `PUBLIC_ORIGIN=http://localhost:5175`. Обычная собранная версия использует `http://localhost:8080` и такой же `PUBLIC_ORIGIN`. Origin должен точно совпадать с адресом браузера. `NEXT_PUBLIC_LANDING_URL` задаёт отдельный лендинг; после изменения нужна пересборка.
+Frontend dev — `npm run dev`, порт **5175**, API и юридические документы проксируются на 8080. Для него backend запускается с `PUBLIC_ORIGIN=http://localhost:5175`. Обычная собранная версия использует `http://localhost:8080` и такой же `PUBLIC_ORIGIN`. Origin должен точно совпадать с адресом браузера. Ссылки на лендинг ведут на `https://s1point.ru`, в том числе при локальном запуске.
 
 ## Проверки
 

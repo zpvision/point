@@ -1,7 +1,4 @@
-// Vite injects this public value for both client and server builds.
-const landingOrigin = (
-  import.meta.env.VITE_LANDING_URL || "http://localhost:5173"
-).replace(/\/$/, "");
+const landingOrigin = "https://s1point.ru";
 
 export function landingHref(path = "/") {
   return `${landingOrigin}${path}`;

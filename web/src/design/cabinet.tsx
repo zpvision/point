@@ -118,6 +118,7 @@ export default function Cabinet({
     queue = useRef<Promise<unknown>>(Promise.resolve()),
     timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const d = record?.data;
+  const profileName = profile.name.trim() || user.name.trim() || user.email;
   const step = d?.step || 0;
   const submitted = record?.status === "ready";
   const orgFields = organizationFields(d?.legal || "");
@@ -490,7 +491,7 @@ export default function Cabinet({
         <a
           {...link(landingHref("/"))}
           className="logo"
-          aria-label="Point — мои точки"
+          aria-label="Point — главная страница s1point.ru"
         >
           point<span>.</span>
         </a>
@@ -507,20 +508,22 @@ export default function Cabinet({
         </nav>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="user-menu" aria-label="Меню пользователя">
-              <span className="avatar">
-                {(profile.name || user.name)
-                  .split(" ")
-                  .map((x) => x[0])
-                  .slice(0, 2)
-                  .join("")}
+            <button
+              className="user-menu"
+              aria-label={`Меню пользователя: ${profileName}`}
+            >
+              <span className="avatar" aria-hidden="true">
+                <User size={18} />
+              </span>
+              <span className="user-full-name" translate="no">
+                {profileName}
               </span>
               <ChevronDown size={16} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="account-menu">
             <div className="menu-identity">
-              <strong>{profile.name || user.name}</strong>
+              <strong translate="no">{profileName}</strong>
               <span translate="no">{profile.email}</span>
             </div>
             <DropdownMenuSeparator />
