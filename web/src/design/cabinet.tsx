@@ -62,6 +62,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Toaster, toast } from "sonner";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   blank,
   groups,
   steps,
@@ -94,6 +101,7 @@ export default function Cabinet({
   const [photoCategory, setPhotoCategory] = useState("facade");
   const [assistantTyping, setAssistantTyping] = useState(false);
   const [offerReviewed, setOfferReviewed] = useState(false);
+  const [submissionComplete, setSubmissionComplete] = useState(false);
   const [legalOptions, setLegalOptions] = useState<
     ReturnType<typeof organizationChoices>
   >([]);
@@ -335,8 +343,7 @@ export default function Cabinet({
     setRecord(ready);
     try {
       await save(ready);
-      toast.success("Заявка отправлена на проверку");
-      await go("/account/points");
+      setSubmissionComplete(true);
     } catch (e) {
       const draft = { ...current.current!, status: "draft" };
       current.current = draft;
@@ -487,6 +494,48 @@ export default function Cabinet({
   return (
     <>
       <Toaster position="bottom-right" />
+      <Dialog
+        open={submissionComplete}
+        onOpenChange={(open) => {
+          setSubmissionComplete(open);
+          if (!open) void go("/account/points");
+        }}
+      >
+        <DialogContent
+          className="point-submitted-modal"
+          showCloseButton={false}
+        >
+          <DialogClose asChild>
+            <button className="point-submitted-close" aria-label="Закрыть">
+              <X size={20} />
+            </button>
+          </DialogClose>
+          <div className="point-submitted-icon" aria-hidden="true">
+            <CheckCheck size={32} />
+          </div>
+          <span className="eyebrow">POINT · ЗАЯВКА ПРИНЯТА</span>
+          <DialogTitle className="point-submitted-title">
+            Поздравляем! Ещё на один Point ближе.
+          </DialogTitle>
+          <DialogDescription className="point-submitted-description">
+            Спасибо за заявку и желание стать частью партнёрской сети Point!
+            Сейчас ваша заявка проходит проверку. После завершения проверки мы
+            отправим сообщение на вашу почту.
+          </DialogDescription>
+          <div className="point-submitted-email">
+            <Mail size={20} aria-hidden="true" />
+            <span translate="no">{profile.email || user.email}</span>
+          </div>
+          <p className="point-submitted-hint">
+            Статус заявки также можно посмотреть в личном кабинете.
+          </p>
+          <DialogClose asChild>
+            <button className="primary lime-action point-submitted-action">
+              В личный кабинет <Check size={18} aria-hidden="true" />
+            </button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
       <header className="header">
         <a
           {...link(landingHref("/"))}
