@@ -1623,9 +1623,16 @@ a:focus-visible {
     font-size: 15px;
   }
 }
-.point-submitted-modal {
-  transform: none;
-  translate: -50% -50%;
+.point-submitted-modal[data-slot="dialog-content"] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  translate: none;
+  animation: point-submitted-appear 180ms ease-out;
   width: min(520px, calc(100vw - 32px));
   max-width: 520px;
   max-height: calc(100dvh - 32px);
@@ -1637,6 +1644,19 @@ a:focus-visible {
   background: #fff;
   color: #202020;
   box-shadow: 0 24px 80px #0003;
+}
+@keyframes point-submitted-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .point-submitted-modal[data-slot="dialog-content"] {
+    animation: none;
+  }
 }
 .point-submitted-close {
   position: absolute;
@@ -1701,7 +1721,7 @@ a:focus-visible {
   justify-content: center;
 }
 @media (max-width: 580px) {
-  .point-submitted-modal {
+  .point-submitted-modal[data-slot="dialog-content"] {
     padding: 28px 24px;
     gap: 14px;
   }
