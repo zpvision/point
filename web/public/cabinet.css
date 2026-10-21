@@ -7794,9 +7794,7 @@ a:focus-visible {
   padding: 5px 8px;
 }
 .chat-stream {
-  height: calc(100dvh - 285px);
-  min-height: 520px;
-  max-height: 860px;
+  height: clamp(280px, calc(100dvh - 365px), 780px);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 25px 24px 30px;
@@ -7902,8 +7900,10 @@ a:focus-visible {
   margin-top: 16px;
 }
 .chat-panel .form-footer {
-  margin-top: 20px;
-  padding-top: 17px;
+  margin-top: 0;
+  padding: 17px 24px;
+  padding-bottom: max(17px, env(safe-area-inset-bottom));
+  background: #fff;
 }
 .chat-actions {
   align-items: center;
@@ -7992,9 +7992,7 @@ a:focus-visible {
   }
   .chat-stream {
     padding: 20px 16px;
-    min-height: 440px;
-    height: 68dvh;
-    max-height: none;
+    height: clamp(240px, 55dvh, 600px);
   }
   .chat-composer {
     padding: 16px;
@@ -8029,6 +8027,7 @@ a:focus-visible {
   }
   .chat-panel .form-footer {
     gap: 10px;
+    padding-inline: 16px;
   }
   .chat-panel .hours-row input {
     min-width: 0;

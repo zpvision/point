@@ -1125,40 +1125,40 @@ export default function Cabinet({
                                 {error}
                               </p>
                             )}
-                            <div className="form-footer chat-actions">
-                              <span className="chat-autosave">
-                                <Save size={14} /> Автосохранение
-                              </span>
-                              <button
-                                className="primary"
-                                disabled={
-                                  submitted ||
-                                  busy ||
-                                  uploading ||
-                                  assistantTyping ||
-                                  (step === 12 && !offerReviewed)
-                                }
-                                onClick={step === 12 ? finalize : next}
-                              >
-                                {busy ? (
-                                  <Loader2 size={18} className="spin" />
-                                ) : step === 12 ? (
-                                  <Check size={18} />
-                                ) : (
-                                  <Send size={17} />
-                                )}{" "}
-                                {submitted
-                                  ? "Заявка отправлена"
-                                  : step === 12
-                                    ? "Завершить заявку"
-                                    : editing
-                                      ? "Сохранить ответ"
-                                      : "Ответить"}
-                              </button>
-                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                    <div className="form-footer chat-actions">
+                      <span className="chat-autosave">
+                        <Save size={14} /> Автосохранение
+                      </span>
+                      <button
+                        className="primary"
+                        disabled={
+                          submitted ||
+                          busy ||
+                          uploading ||
+                          assistantTyping ||
+                          (step === 12 && !offerReviewed)
+                        }
+                        onClick={step === 12 ? finalize : next}
+                      >
+                        {busy ? (
+                          <Loader2 size={18} className="spin" />
+                        ) : step === 12 ? (
+                          <Check size={18} />
+                        ) : (
+                          <Send size={17} />
+                        )}{" "}
+                        {submitted
+                          ? "Заявка отправлена"
+                          : step === 12
+                            ? "Завершить заявку"
+                            : editing
+                              ? "Сохранить ответ"
+                              : "Ответить"}
+                      </button>
                     </div>
                   </section>
                   <aside className="preview-panel">
