@@ -1,5 +1,8 @@
 # Point
 
+Production: кабинет — https://app.2point.ru, лендинг — https://2point.ru.
+Настройки защиты и команды безопасного обновления: [docs/production-domain.md](docs/production-domain.md).
+
 Интерфейс обновлён по образцу `app`; backend Go/PostgreSQL сохранён. Актуальные маршруты, запуск и проверки переноса описаны в [docs/design-migration.md](docs/design-migration.md). Собранное приложение открывается на `/account`, маркетплейс — `/market`; frontend dev теперь использует порт **5175**.
 
 Платформа регистрации партнёров и их точек. Backend — Go 1.26 / PostgreSQL; frontend — React 19 / TypeScript / Vite. Исходный репозиторий содержал только `go.mod`, существующих компонентов или таблиц для переиспользования не было.

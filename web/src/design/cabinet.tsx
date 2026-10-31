@@ -540,7 +540,7 @@ export default function Cabinet({
         <a
           {...link(landingHref("/"))}
           className="logo"
-          aria-label="Point — главная страница s1point.ru"
+          aria-label="Point — главная страница 2point.ru"
         >
           point<span>.</span>
         </a>

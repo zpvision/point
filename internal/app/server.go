@@ -136,6 +136,11 @@ func (a *App) migrate(ctx context.Context) error {
 	return tx.Commit()
 }
 func Run() error {
+	appEnv := env("APP_ENV", "production")
+	origin, err := publicOrigin(appEnv)
+	if err != nil {
+		return err
+	}
 	db, e := sql.Open("pgx", os.Getenv("DATABASE_URL"))
 	if e != nil {
 		return e
@@ -148,7 +153,7 @@ func Run() error {
 	if e = db.PingContext(ctx); e != nil {
 		return fmt.Errorf("database connection: %w", e)
 	}
-	a := &App{db: db, env: env("APP_ENV", "production"), origin: env("PUBLIC_ORIGIN", "http://localhost:8080"), uploadDir: env("UPLOAD_DIR", "var/uploads"), rates: map[string]rateEntry{}}
+	a := &App{db: db, env: appEnv, origin: origin, uploadDir: env("UPLOAD_DIR", "var/uploads"), rates: map[string]rateEntry{}}
 	a.lookup = DaDataProvider{Key: os.Getenv("DADATA_API_KEY")}
 	a.geo = FallbackGeoProvider{
 		Primary: YandexProvider{GeocoderKey: os.Getenv("YANDEX_GEOCODER_API_KEY"), SuggestKey: os.Getenv("YANDEX_SUGGEST_API_KEY")},
@@ -263,7 +268,7 @@ func (a *App) routes() http.Handler {
 		}
 		http.ServeFile(w, r, filepath.Join(root, "index.html"))
 	})
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return a.protectOrigin(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -275,16 +280,8 @@ func (a *App) routes() http.Handler {
 			u, e := a.lookupUser(r)
 			r = r.WithContext(context.WithValue(r.Context(), authContextKey{}, authState{user: u, err: e}))
 		}
-		if r.Method != "GET" && r.Method != "HEAD" {
-			origin := r.Header.Get("Origin")
-			if origin != "" && origin != a.origin {
-				w.WriteHeader(403)
-				jsonResponse(w, &apiError{Code: "ORIGIN_FORBIDDEN", Message: "Недопустимый источник запроса"})
-				return
-			}
-		}
 		m.ServeHTTP(w, r)
-	})
+	}))
 }
 func (a *App) user(r *http.Request) (*User, error) {
 	if cached, ok := r.Context().Value(authContextKey{}).(authState); ok {
